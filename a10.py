@@ -122,6 +122,28 @@ def get_birth_date(name: str) -> str:
 
     return match.group("birth")
 
+def get_capital(place: str) -> str:
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
+    
+    # Updated pattern: Handles "Capital" or "Capital city" and handles 
+    # the way BeautifulSoup might clump the text together.
+    pattern = r"Capital(?: city)?\s+(?P<cap>[A-Z][a-zA-Z\s\.\,]+?)(?=\n|Largest city|Coordinates|\[|$)"
+    error_text = f"I found the page for {search_term}, but couldn't find the capital."
+    
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("cap").strip()
+
+def get_birth_date(name: str) -> str:
+    # Fix: Capitalize name here so it works for "grace hopper"
+    search_term = name.strip().title()
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(search_term)))
+    pattern = r"(?:Born\D*)(?P<birth>\d{4}-\d{2}-\d{2})"
+    error_text = "No birth information found in xxxx-xx-xx format."
+    match = get_match(infobox_text, pattern, error_text)
+    return match.group("birth")
+
 
 # below are a set of actions. Each takes a list argument and returns a list of answers
 # according to the action and the argument. It is important that each function returns a
@@ -151,6 +173,11 @@ def polar_radius(matches: List[str]) -> List[str]:
     """
     return [get_polar_radius(matches[0])]
 
+def capital_city(matches: List[str]) -> List[str]:
+    """Action function for the capital query."""
+    # join matches in case the user types "united states"
+    return [get_capital(" ".join(matches))]
+
 
 # dummy argument is ignored and doesn't matter
 def bye_action(dummy: List[str]) -> None:
@@ -165,6 +192,7 @@ Action = Callable[[List[str]], List[Any]]
 # The pattern-action list for the natural language query system. It must be declared
 # here, after all of the function definitions
 pa_list: List[Tuple[Pattern, Action]] = [
+    ("what is the capital of %".split(), capital_city),
     ("when was % born".split(), birth_date),
     ("what is the polar radius of %".split(), polar_radius),
     (["bye"], bye_action),
