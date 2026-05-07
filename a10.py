@@ -122,17 +122,19 @@ def get_birth_date(name: str) -> str:
 
     return match.group("birth")
 
+
 def get_capital(place: str) -> str:
     search_term = place.strip().title()
     html = get_page_html(search_term)
     infobox_text = clean_text(get_first_infobox_text(html))
     
-    # Updated pattern: Handles "Capital" or "Capital city" and handles 
-    # the way BeautifulSoup might clump the text together.
-    pattern = r"Capital(?: city)?\s+(?P<cap>[A-Z][a-zA-Z\s\.\,]+?)(?=\n|Largest city|Coordinates|\[|$)"
+    # We add (?P<cap>...) to define a named group
+    pattern = r"Capital(?:.*?city)?\s*(?P<cap>[A-Z][a-z]+)"
     error_text = f"I found the page for {search_term}, but couldn't find the capital."
     
     match_obj = get_match(infobox_text, pattern, error_text)
+    
+    # Now .group("cap") will work perfectly
     return match_obj.group("cap").strip()
 
 def get_birth_date(name: str) -> str:
