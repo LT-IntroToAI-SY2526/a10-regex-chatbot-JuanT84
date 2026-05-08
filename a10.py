@@ -137,6 +137,18 @@ def get_capital(place: str) -> str:
     # Now .group("cap") will work perfectly
     return match_obj.group("cap").strip()
 
+def get_population(place: str) -> str:
+    """Gets the population of the given place"""
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
+    print(infobox_text)
+    pattern = r"Population.*?[\s\n](?P<pop>[\d,.]+)"
+    error_text = f"I found the page for {search_term}, but couldn't find a population count."
+    
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("pop").strip()
+
 def get_birth_date(name: str) -> str:
     # Fix: Capitalize name here so it works for "grace hopper"
     search_term = name.strip().title()
@@ -180,6 +192,9 @@ def capital_city(matches: List[str]) -> List[str]:
     # join matches in case the user types "united states"
     return [get_capital(" ".join(matches))]
 
+def population_count(matches: List[str]) -> List[str]:
+    """Action function for the population query."""
+    return [get_population(" ".join(matches))]
 
 # dummy argument is ignored and doesn't matter
 def bye_action(dummy: List[str]) -> None:
@@ -197,6 +212,8 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("what is the capital of %".split(), capital_city),
     ("when was % born".split(), birth_date),
     ("what is the polar radius of %".split(), polar_radius),
+    ("what is the population of %".split(), population_count),
+    ("how many people live in %".split(), population_count),
     (["bye"], bye_action),
 ]
 
