@@ -142,10 +142,9 @@ def get_population(place: str) -> str:
     search_term = place.strip().title()
     html = get_page_html(search_term)
     infobox_text = clean_text(get_first_infobox_text(html))
-    print(infobox_text)
-    pattern = r"Population.*?[\s\n](?P<pop>[\d,.]+)"
+    ##print(infobox_text)
+    pattern = r"Population.*?\s(?P<pop>[\d,.]+)(?=\[)"    
     error_text = f"I found the page for {search_term}, but couldn't find a population count."
-    
     match_obj = get_match(infobox_text, pattern, error_text)
     return match_obj.group("pop").strip()
 
