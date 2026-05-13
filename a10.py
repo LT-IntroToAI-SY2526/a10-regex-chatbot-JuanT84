@@ -148,6 +148,21 @@ def get_population(place: str) -> str:
     match_obj = get_match(infobox_text, pattern, error_text)
     return match_obj.group("pop").strip()
 
+def get_official_language(place: str) -> str:
+    """Gets the official language of the given place"""
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
+    #print(infobox_text)
+    
+    # Regex looks for "Official language" followed by the first word(s)
+    # until it hits a newline or a bracketed reference.
+    pattern =r"Official\s+languages?\s*(?P<lang>[A-Z][a-z]+)"
+    error_text = f"I found the page for {search_term}, but couldn't identify the official language."
+    
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("lang").strip()
+
 def get_birth_date(name: str) -> str:
     # Fix: Capitalize name here so it works for "grace hopper"
     search_term = name.strip().title()
@@ -195,6 +210,10 @@ def population_count(matches: List[str]) -> List[str]:
     """Action function for the population query."""
     return [get_population(" ".join(matches))]
 
+def official_language(matches: List[str]) -> List[str]:
+    """Action function for the official language query."""
+    return [get_official_language(" ".join(matches))]
+
 # dummy argument is ignored and doesn't matter
 def bye_action(dummy: List[str]) -> None:
     raise KeyboardInterrupt
@@ -213,6 +232,7 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("what is the polar radius of %".split(), polar_radius),
     ("what is the population of %".split(), population_count),
     ("how many people live in %".split(), population_count),
+    ("what language do they speak in %".split(), official_language),
     (["bye"], bye_action),
 ]
 
