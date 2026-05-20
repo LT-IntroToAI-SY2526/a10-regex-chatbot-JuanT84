@@ -173,6 +173,47 @@ def get_birth_date(name: str) -> str:
     return match.group("birth")
 
 
+def get_area(place: str) -> str:
+    """Gets the area of the given place"""
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
+
+    # Example matches: "Area 1,234 km2" or "Area Total 12,345 sq mi"
+    pattern = r"Area(?:.*?)(?P<area>[\d,]+(?:\.\d+)?\s*(?:km²|km2|sq\s?mi|sqmi|km))"    
+    error_text = f"I found the page for {search_term}, but couldn't find an area value."
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("area").strip()
+
+def get_leader(place: str) -> str:
+    """Gets the leader (e.g., President, Prime Minister) of the given place"""
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
+    # Matches things like:
+    # "President Joe Biden"
+    # "Prime Minister Justin Trudeau"
+    pattern = r"(President|Prime Minister|Monarch|Leader)\s+(?P<name>[A-Z][a-z]+(?:\s[A-Z][a-z]+)*)"    
+    error_text = f"I found the page for {search_term}, but couldn't identify a leader."
+ 
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("name").strip()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # below are a set of actions. Each takes a list argument and returns a list of answers
 # according to the action and the argument. It is important that each function returns a
 # list of the answer(s) and not just the answer itself.
@@ -214,6 +255,29 @@ def official_language(matches: List[str]) -> List[str]:
     """Action function for the official language query."""
     return [get_official_language(" ".join(matches))]
 
+
+
+def area_of_place(matches: List[str]) -> List[str]:
+    return [get_area(" ".join(matches))]
+
+def leader_of_place(matches: List[str]) -> List[str]:
+    return [get_leader(" ".join(matches))]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # dummy argument is ignored and doesn't matter
 def bye_action(dummy: List[str]) -> None:
     raise KeyboardInterrupt
@@ -233,6 +297,11 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("what is the population of %".split(), population_count),
     ("how many people live in %".split(), population_count),
     ("what language do they speak in %".split(), official_language),
+
+    ("what is the area of %".split(), area_of_place),
+    ("who is the leader of %".split(), leader_of_place),
+
+
     (["bye"], bye_action),
 ]
 
