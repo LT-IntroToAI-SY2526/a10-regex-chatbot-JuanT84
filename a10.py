@@ -172,6 +172,7 @@ def get_birth_date(name: str) -> str:
     match = get_match(infobox_text, pattern, error_text)
     return match.group("birth")
 
+#Extension Final Project
 
 def get_area(place: str) -> str:
     """Gets the area of the given place"""
@@ -199,10 +200,69 @@ def get_leader(place: str) -> str:
     match_obj = get_match(infobox_text, pattern, error_text)
     return match_obj.group("name").strip()
 
+def get_gdp(place: str) -> str:
+    """Gets the GDP (Nominal) of the given place"""
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
 
+    # Matches "GDP (nominal) 2026 estimate Total $X trillion/billion" or similar variations
+    pattern = r"GDP\s*(?:\(nominal\))?.*?Total\s*(?P<gdp>\$[0-9.,]+\s*(?:trillion|billion|million|million)?)"
+    error_text = f"I found the page for {search_term}, but couldn't find a GDP value."
+    
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("gdp").strip()
 
+def get_currency(place: str) -> str:
+    """Gets the currency of the given place"""
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
+    # Matches "Currency United States dollar ($) (USD)" or "Currency Euro"
+    pattern = r"Currency\s*(?:\([^)]*\))?\s*(?P<curr>[A-Za-z\s]+(?:\s*\([^)]+\)){0,2})"    
+    error_text = f"I found the page for {search_term}, but couldn't identify the currency."
+    
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("curr").strip()
 
+def get_anthem(place: str) -> str:
+    """Gets the official national anthem of the given place"""
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
 
+    # Matches Anthem: "Das Lied der Deutschen"
+    pattern = r"Anthem:\s*(?P<anthem>\"[^\"]+\"|[A-Z][a-zA-Z\s]+)"
+    error_text = f"I found the page for {search_term}, but couldn't identify an anthem."
+    
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("anthem").strip()
+
+def get_calling_code(place: str) -> str:
+    """Gets the international calling code of the given place"""
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
+
+    # Matches "Calling code +33" or "Calling code 1" (and can capture the '+' symbol if present)
+    pattern = r"Calling\s+code\s*(?P<code>\+?[0-9\s\-]+)"
+    error_text = f"I found the page for {search_term}, but couldn't find a calling code."
+    
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("code").strip()
+
+def get_timezone(place: str) -> str:
+    """Gets the primary time zone of the given place"""
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
+
+    # Matches "Time zone UTC+1" or "Time zone UTC-05:00"
+    pattern = r"Time\s+zone\s*(?P<zone>UTC[+-][0-9:]+|[A-Z]{3,4})"
+    error_text = f"I found the page for {search_term}, but couldn't identify the time zone."
+    
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("zone").strip()
 
 
 
@@ -255,7 +315,7 @@ def official_language(matches: List[str]) -> List[str]:
     """Action function for the official language query."""
     return [get_official_language(" ".join(matches))]
 
-
+#Extension Final Project
 
 def area_of_place(matches: List[str]) -> List[str]:
     return [get_area(" ".join(matches))]
@@ -263,11 +323,25 @@ def area_of_place(matches: List[str]) -> List[str]:
 def leader_of_place(matches: List[str]) -> List[str]:
     return [get_leader(" ".join(matches))]
 
+def gdp_of_place(matches: List[str]) -> List[str]:
+    """Action function for the GDP query."""
+    return [get_gdp(" ".join(matches))]
 
+def currency_of_place(matches: List[str]) -> List[str]:
+    """Action function for the currency query."""
+    return [get_currency(" ".join(matches))]
 
+def anthem_of_place(matches: List[str]) -> List[str]:
+    """Action function for the anthem query."""
+    return [get_anthem(" ".join(matches))]
 
+def calling_code_of_place(matches: List[str]) -> List[str]:
+    """Action function for the calling code query."""
+    return [get_calling_code(" ".join(matches))]
 
-
+def timezone_of_place(matches: List[str]) -> List[str]:
+    """Action function for the time zone query."""
+    return [get_timezone(" ".join(matches))]
 
 
 
@@ -298,8 +372,21 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("how many people live in %".split(), population_count),
     ("what language do they speak in %".split(), official_language),
 
+#Extension Final Project
+
     ("what is the area of %".split(), area_of_place),
     ("who is the leader of %".split(), leader_of_place),
+    ("what is the gdp of %".split(), gdp_of_place),
+    ("what is the currency of %".split(), currency_of_place),
+    ("what money do they use in %".split(), currency_of_place),
+    ("what is the anthem of %".split(), anthem_of_place),
+    ("what is the national anthem of %".split(), anthem_of_place),
+    ("what is the calling code for %".split(), calling_code_of_place),
+    ("what is the country code for %".split(), calling_code_of_place),
+    ("how do i call %".split(), calling_code_of_place),
+    ("what is the time zone of %".split(), timezone_of_place),
+    ("what time zone is % in".split(), timezone_of_place),
+
 
 
     (["bye"], bye_action),
