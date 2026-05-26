@@ -264,15 +264,54 @@ def get_timezone(place: str) -> str:
     match_obj = get_match(infobox_text, pattern, error_text)
     return match_obj.group("zone").strip()
 
+def get_religion(subject: str) -> str:
+    """Gets the predominant religion or the subject's personal religion"""
+    search_term = subject.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
+    # Matches "Religion Christianity (85%)" or "Religion Islam" or "Religion Roman Catholic"
+    pattern = r"Religion\s*.*?(?P<rel>\d+(?:\.\d+)?%\s+[A-Za-z\s]+)"    
+    error_text = f"I found the page for {search_term}, but couldn't find religion information."
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("rel").strip()
 
+def get_independence(place: str) -> str:
+    """Gets the independence date or milestone of the given place"""
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
+    pattern = r"Independence\s*.*?(?P<date>\d{1,2}\s+[A-Za-z]+\s+\d{4}|[A-Za-z]+\s+\d{1,2},?\s+\d{4}|\d{4})"
+    error_text = f"I found the page for {search_term}, but couldn't find an independence date."
+    
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("date").strip()
 
+def get_coordinates(place: str) -> str:
+    """Gets the geographical coordinates of the given place"""
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
 
+    # Matches coordinates like "19.433 N 99.133 W" or standard decimal formats "19.433; -99.133"
+    pattern = r"(?P<coords>\d+\.\d+\s*[NS]\s*\d+\.\d+\s*[EW]|\d+\.\d+;\s*-\d+\.\d+)"
+    error_text = f"I found the page for {search_term}, but couldn't extract coordinates."
+    
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("coords").strip()
 
+def get_first_constitution(place: str) -> str:
+    """Gets the date of the first constitution for the given place"""
+    search_term = place.strip().title()
+    html = get_page_html(search_term)
+    infobox_text = clean_text(get_first_infobox_text(html))
 
-
-
-
-
+    # 1. Matches "First constitution"
+    # 2. Captures either a full date (e.g., 4 October 1824) or just the 4-digit year
+    pattern = r"First\s+constitution\s*(?P<date>\d{1,2}\s+[A-Za-z]+\s+\d{4}|\d{4})"
+    error_text = f"I found the page for {search_term}, but couldn't find information on their first constitution."
+    
+    match_obj = get_match(infobox_text, pattern, error_text)
+    return match_obj.group("date").strip()
 
 # below are a set of actions. Each takes a list argument and returns a list of answers
 # according to the action and the argument. It is important that each function returns a
@@ -343,13 +382,21 @@ def timezone_of_place(matches: List[str]) -> List[str]:
     """Action function for the time zone query."""
     return [get_timezone(" ".join(matches))]
 
+def religion_of_subject(matches: List[str]) -> List[str]:
+    """Action function for the religion query."""
+    return [get_religion(" ".join(matches))]
 
+def independence_of_place(matches: List[str]) -> List[str]:
+    """Action function for the independence query."""
+    return [get_independence(" ".join(matches))]
 
+def coordinates_of_place(matches: List[str]) -> List[str]:
+    """Action function for the coordinates query."""
+    return [get_coordinates(" ".join(matches))]
 
-
-
-
-
+def first_constitution_of_place(matches: List[str]) -> List[str]:
+    """Action function for the first constitution query."""
+    return [get_first_constitution(" ".join(matches))]
 
 
 # dummy argument is ignored and doesn't matter
@@ -386,6 +433,18 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("how do i call %".split(), calling_code_of_place),
     ("what is the time zone of %".split(), timezone_of_place),
     ("what time zone is % in".split(), timezone_of_place),
+    ("what is the religion of %".split(), religion_of_subject),
+    ("what religion is %".split(), religion_of_subject),
+    ("what religion do they practice in %".split(), religion_of_subject),
+    ("when did % gain independence".split(), independence_of_place),
+    ("what is the independence date of %".split(), independence_of_place),
+    ("when was % founded".split(), independence_of_place),
+    ("what are the coordinates of %".split(), coordinates_of_place),
+    ("where is % located".split(), coordinates_of_place),
+    ("what is the latitude and longitude of %".split(), coordinates_of_place),
+    ("when was the first constitution of %".split(), first_constitution_of_place),
+    ("what is the date of the first constitution of %".split(), first_constitution_of_place),
+    ("when did % get its first constitution".split(), first_constitution_of_place),
 
 
 
